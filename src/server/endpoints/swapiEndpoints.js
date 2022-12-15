@@ -1,6 +1,9 @@
 const fetch = require("node-fetch");
 
 const applySwapiEndpoints = (server, app) => {
+  const options = {
+    method: "GET",
+  };
   server.get("/hfswapi/test", async (req, res) => {
     const data = await app.swapiFunctions.genericRequest(
       "https://swapi.dev/api/",
@@ -14,9 +17,6 @@ const applySwapiEndpoints = (server, app) => {
   server.get("/hfswapi/getPeople/:id", async (req, res) => {
     const id = req.params.id;
     const data = await app.db.swPeople.findByPk(id);
-    const options = {
-      method: "GET",
-    };
     if (data) {
       res.send(data);
     } else {
@@ -40,9 +40,6 @@ const applySwapiEndpoints = (server, app) => {
   server.get("/hfswapi/getPlanet/:id", async (req, res) => {
     const id = req.params.id;
     const data = await app.db.swPlanet.findByPk(id);
-    const options = {
-      method: "GET",
-    };
     if (data) {
       res.send(data);
     } else {
@@ -56,7 +53,34 @@ const applySwapiEndpoints = (server, app) => {
   });
 
   server.get("/hfswapi/getWeightOnPlanetRandom", async (req, res) => {
-    res.sendStatus(501);
+    const randomID = Math.floor(Math.random() * 60);
+    const planet = await app.db.swPlanet.findByPk(randomID);
+    const people = await app.db.swPeople.findByPk(randomID);
+    if (planet && people) {
+      const response = app.swapiFunctions.getWeightOnPlanet(
+        people.mass,
+        planet.gravity
+      );
+      res.send(response);
+    } else {
+      const responsePlanet = await fetch(
+        `https://swapi.dev/api/planets/${randomID}`,
+        options
+      );
+      const responsePeople = await fetch(
+        `https://swapi.dev/api/people/${randomID}`,
+        options
+      );
+      const { mass } = await responsePeople.json();
+      const { gravity } = await responsePlanet.json();
+      const gravityNumber = app.swapiFunctions.getGravityNumber(gravity);
+      console.log(mass, gravityNumber);
+      const response = app.swapiFunctions.getWeightOnPlanet(
+        mass,
+        gravityNumber
+      );
+      res.send({ weight: response });
+    }
   });
 
   server.get("/hfswapi/getLogs", async (req, res) => {
