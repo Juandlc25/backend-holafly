@@ -1,4 +1,5 @@
 const fetch = require("node-fetch");
+const os = require("os");
 
 const applySwapiEndpoints = (server, app) => {
   const options = {
@@ -16,6 +17,12 @@ const applySwapiEndpoints = (server, app) => {
 
   server.get("/hfswapi/getPeople/:id", async (req, res) => {
     const id = req.params.id;
+    await app.db.logging.create({
+      action: "/hfswapi/getPeople/:id",
+      header: JSON.stringify(req.headers),
+      ip: req.ip,
+    });
+
     const data = await app.db.swPeople.findByPk(id);
     if (data) {
       res.send(data);
@@ -39,6 +46,11 @@ const applySwapiEndpoints = (server, app) => {
 
   server.get("/hfswapi/getPlanet/:id", async (req, res) => {
     const id = req.params.id;
+    await app.db.logging.create({
+      action: "/hfswapi/getPlanet/:id",
+      header: JSON.stringify(req.headers),
+      ip: req.ip,
+    });
     const data = await app.db.swPlanet.findByPk(id);
     if (data) {
       res.send(data);
@@ -54,6 +66,11 @@ const applySwapiEndpoints = (server, app) => {
 
   server.get("/hfswapi/getWeightOnPlanetRandom", async (req, res) => {
     const randomID = Math.floor(Math.random() * 60);
+    await app.db.logging.create({
+      action: "/hfswapi/getWeightOnPlanetRandom",
+      header: JSON.stringify(req.headers),
+      ip: req.ip,
+    });
     const planet = await app.db.swPlanet.findByPk(randomID);
     const people = await app.db.swPeople.findByPk(randomID);
     if (planet && people) {
