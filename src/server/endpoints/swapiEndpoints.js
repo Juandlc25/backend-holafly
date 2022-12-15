@@ -61,7 +61,7 @@ const applySwapiEndpoints = (server, app) => {
         people.mass,
         planet.gravity
       );
-      res.send(response);
+      res.send({ weight: response });
     } else {
       const responsePlanet = await fetch(
         `https://swapi.dev/api/planets/${randomID}`,
@@ -71,14 +71,17 @@ const applySwapiEndpoints = (server, app) => {
         `https://swapi.dev/api/people/${randomID}`,
         options
       );
-      const { mass } = await responsePeople.json();
+      const { mass, homeworld } = await responsePeople.json();
       const { gravity } = await responsePlanet.json();
       const gravityNumber = app.swapiFunctions.getGravityNumber(gravity);
-      console.log(mass, gravityNumber);
       const response = app.swapiFunctions.getWeightOnPlanet(
         mass,
         gravityNumber
       );
+      if (homeworld.match(/\d/g).join("") === String(randomID)) {
+        response.send({ error: "Error" });
+        return;
+      }
       res.send({ weight: response });
     }
   });
